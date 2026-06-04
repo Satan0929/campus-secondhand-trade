@@ -1,10 +1,8 @@
 package com.campus.secondhand.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
 import java.time.LocalDateTime;
 
-@Data
 @TableName("favorite")
 public class Favorite {
     @TableId(type = IdType.INPUT)
@@ -14,4 +12,28 @@ public class Favorite {
 
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
+    }
 }

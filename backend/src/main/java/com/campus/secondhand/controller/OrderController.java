@@ -1,9 +1,9 @@
 package com.campus.secondhand.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.campus.secondhand.common.Result;
+import com.campus.secondhand.config.AuthUtil;
 import com.campus.secondhand.entity.Order;
 import com.campus.secondhand.entity.Product;
 import com.campus.secondhand.mapper.OrderMapper;
@@ -31,11 +31,15 @@ public class OrderController {
 
     @PostMapping
     @Transactional
-    public Result<Order> create(@RequestBody Map<String, Object> params) {
+    public Result<Order> create(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody Map<String, Object> params) {
+        Long buyerId = AuthUtil.getLoginId(token);
+        if (buyerId == null) {
+            return Result.error("未登录");
+        }
+        
         Long productId = Long.valueOf(params.get("productId").toString());
         Integer quantity = Integer.valueOf(params.getOrDefault("quantity", 1).toString());
         
-        Long buyerId = StpUtil.getLoginIdAsLong();
         Product product = productMapper.selectById(productId);
         
         if (product == null || product.getStatus() != 0) {
@@ -65,8 +69,11 @@ public class OrderController {
 
     @PutMapping("/{id}/pay")
     @Transactional
-    public Result<Void> pay(@PathVariable Long id) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> pay(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Order order = orderMapper.selectById(id);
         if (order == null || !order.getBuyerId().equals(userId)) {
             return Result.error("无权操作");
@@ -81,8 +88,11 @@ public class OrderController {
     }
 
     @PutMapping("/{id}/complete")
-    public Result<Void> complete(@PathVariable Long id) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> complete(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Order order = orderMapper.selectById(id);
         if (order == null || !order.getBuyerId().equals(userId)) {
             return Result.error("无权操作");
@@ -97,8 +107,11 @@ public class OrderController {
 
     @PutMapping("/{id}/cancel")
     @Transactional
-    public Result<Void> cancel(@PathVariable Long id) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> cancel(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Order order = orderMapper.selectById(id);
         if (order == null || !order.getBuyerId().equals(userId)) {
             return Result.error("无权操作");
@@ -122,8 +135,11 @@ public class OrderController {
     }
 
     @GetMapping("/my")
-    public Result<Map<String, Object>> myOrders(@RequestParam(defaultValue = "1") Integer pageNum) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Map<String, Object>> myOrders(@RequestHeader(value = "Authorization", required = false) String token, @RequestParam(defaultValue = "1") Integer pageNum) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Order::getBuyerId, userId);
         wrapper.orderByDesc(Order::getCreateTime);

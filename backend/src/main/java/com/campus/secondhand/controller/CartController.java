@@ -1,14 +1,15 @@
 package com.campus.secondhand.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.campus.secondhand.common.Result;
+import com.campus.secondhand.config.AuthUtil;
 import com.campus.secondhand.entity.Cart;
 import com.campus.secondhand.mapper.CartMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -19,8 +20,11 @@ public class CartController {
     private CartMapper cartMapper;
 
     @GetMapping
-    public Result<List<Cart>> list() {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<List<Cart>> list(@RequestHeader(value = "Authorization", required = false) String token) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         LambdaQueryWrapper<Cart> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Cart::getUserId, userId);
         wrapper.orderByDesc(Cart::getCreateTime);
@@ -29,8 +33,11 @@ public class CartController {
     }
 
     @PostMapping
-    public Result<Cart> add(@RequestBody Map<String, Object> params) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Cart> add(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody Map<String, Object> params) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Long productId = Long.valueOf(params.get("productId").toString());
         Integer quantity = Integer.valueOf(params.getOrDefault("quantity", 1).toString());
 
@@ -54,8 +61,11 @@ public class CartController {
     }
 
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody Cart cart) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> update(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id, @RequestBody Cart cart) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Cart existing = cartMapper.selectById(id);
         if (existing == null || !existing.getUserId().equals(userId)) {
             return Result.error("无权操作");
@@ -66,8 +76,11 @@ public class CartController {
     }
 
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> delete(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Cart existing = cartMapper.selectById(id);
         if (existing == null || !existing.getUserId().equals(userId)) {
             return Result.error("无权操作");

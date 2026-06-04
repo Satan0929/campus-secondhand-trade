@@ -1,9 +1,9 @@
 package com.campus.secondhand.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.campus.secondhand.common.Result;
+import com.campus.secondhand.config.AuthUtil;
 import com.campus.secondhand.entity.Product;
 import com.campus.secondhand.mapper.ProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,8 +70,11 @@ public class ProductController {
     }
 
     @PostMapping
-    public Result<Product> publish(@RequestBody Product product) {
-        Long sellerId = StpUtil.getLoginIdAsLong();
+    public Result<Product> publish(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody Product product) {
+        Long sellerId = AuthUtil.getLoginId(token);
+        if (sellerId == null) {
+            return Result.error("未登录");
+        }
         product.setSellerId(sellerId);
         product.setStatus(0);
         productMapper.insert(product);
@@ -79,8 +82,11 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public Result<Void> update(@PathVariable Long id, @RequestBody Product product) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> update(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id, @RequestBody Product product) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Product existing = productMapper.selectById(id);
         if (existing == null || !existing.getSellerId().equals(userId)) {
             return Result.error("无权操作");
@@ -91,8 +97,11 @@ public class ProductController {
     }
 
     @PutMapping("/{id}/offline")
-    public Result<Void> offline(@PathVariable Long id) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> offline(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long id) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Product product = productMapper.selectById(id);
         if (product == null || !product.getSellerId().equals(userId)) {
             return Result.error("无权操作");
@@ -103,8 +112,11 @@ public class ProductController {
     }
 
     @GetMapping("/my")
-    public Result<List<Product>> myProducts() {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<List<Product>> myProducts(@RequestHeader(value = "Authorization", required = false) String token) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Product::getSellerId, userId);
         wrapper.orderByDesc(Product::getCreateTime);

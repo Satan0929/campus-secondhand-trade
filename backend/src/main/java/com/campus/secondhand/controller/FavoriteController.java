@@ -1,8 +1,8 @@
 package com.campus.secondhand.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.campus.secondhand.common.Result;
+import com.campus.secondhand.config.AuthUtil;
 import com.campus.secondhand.dto.FavoriteWithProduct;
 import com.campus.secondhand.entity.Favorite;
 import com.campus.secondhand.entity.Product;
@@ -27,8 +27,11 @@ public class FavoriteController {
     private ProductMapper productMapper;
 
     @GetMapping
-    public Result<List<FavoriteWithProduct>> list() {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<List<FavoriteWithProduct>> list(@RequestHeader(value = "Authorization", required = false) String token) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Favorite::getUserId, userId);
         wrapper.orderByDesc(Favorite::getCreateTime);
@@ -45,8 +48,11 @@ public class FavoriteController {
     }
 
     @PostMapping
-    public Result<Void> add(@RequestBody Map<String, Object> params) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> add(@RequestHeader(value = "Authorization", required = false) String token, @RequestBody Map<String, Object> params) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         Long productId = Long.valueOf(params.get("productId").toString());
         
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
@@ -64,8 +70,11 @@ public class FavoriteController {
     }
 
     @DeleteMapping("/{productId}")
-    public Result<Void> delete(@PathVariable Long productId) {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<Void> delete(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable Long productId) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Favorite::getUserId, userId);
         wrapper.eq(Favorite::getProductId, productId);

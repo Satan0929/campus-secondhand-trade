@@ -1,8 +1,8 @@
 package com.campus.secondhand.controller;
 
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.campus.secondhand.common.Result;
+import com.campus.secondhand.config.AuthUtil;
 import com.campus.secondhand.entity.User;
 import com.campus.secondhand.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,15 +20,24 @@ public class UserController {
     private UserMapper userMapper;
 
     @PostMapping("/register")
-    public Result<Map<String, Object>> register(@RequestBody User user) {
+    public Result<Map<String, Object>> register(@RequestBody Map<String, String> params) {
+        String username = params.get("username");
+        String password = params.get("password");
+        String phone = params.get("phone");
+        
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, user.getUsername());
+        wrapper.eq(User::getUsername, username);
         if (userMapper.selectCount(wrapper) > 0) {
             return Result.error("用户名已存在");
         }
-        user.setPasswordHash(user.getPasswordHash());
+        
+        User user = new User();
+        user.setUsername(username);
+        user.setPasswordHash(password);
+        user.setPhone(phone);
         user.setRole(0);
         userMapper.insert(user);
+        
         Map<String, Object> data = new HashMap<>();
         data.put("userId", user.getUserId());
         return Result.success(data);
@@ -47,23 +56,26 @@ public class UserController {
         if (!password.equals(user.getPasswordHash())) {
             return Result.error("密码错误");
         }
-        StpUtil.login(user.getUserId());
+        String token = AuthUtil.login(user.getUserId());
         Map<String, Object> data = new HashMap<>();
-        data.put("token", StpUtil.getTokenValue());
+        data.put("token", token);
         data.put("user", user);
         return Result.success(data);
     }
 
     @GetMapping("/info")
-    public Result<User> getInfo() {
-        Long userId = StpUtil.getLoginIdAsLong();
+    public Result<User> getInfo(@RequestHeader(value = "Authorization", required = false) String token) {
+        Long userId = AuthUtil.getLoginId(token);
+        if (userId == null) {
+            return Result.error("未登录");
+        }
         User user = userMapper.selectById(userId);
         return Result.success(user);
     }
 
     @PostMapping("/logout")
-    public Result<Void> logout() {
-        StpUtil.logout();
+    public Result<Void> logout(@RequestHeader(value = "Authorization", required = false) String token) {
+        AuthUtil.logout(token);
         return Result.success();
     }
 }
