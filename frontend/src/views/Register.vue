@@ -41,12 +41,18 @@ const handleRegister = async () => {
     ElMessage.warning('请填写用户名和密码')
     return
   }
+  console.log('准备发送注册请求，数据:', {
+    username: form.value.username,
+    password: form.value.password,
+    phone: form.value.phone
+  })
   try {
     const res = await axios.post('/api/user/register', {
       username: form.value.username,
       password: form.value.password,
       phone: form.value.phone
     })
+    console.log('注册响应:', res)
     if (res.data.code === 200) {
       ElMessage.success('注册成功，请登录')
       router.push('/login')
@@ -54,7 +60,8 @@ const handleRegister = async () => {
       ElMessage.error(res.data.message)
     }
   } catch (e) {
-    ElMessage.error('注册失败')
+    console.error('注册失败，错误详情:', e)
+    ElMessage.error('注册失败: ' + (e.response?.data?.message || e.message))
   }
 }
 </script>
