@@ -15,11 +15,17 @@
               <el-button text @click="$router.push('/cart')">
                 <el-icon><ShoppingCart /></el-icon> 购物车
               </el-button>
+              <el-button text @click="$router.push('/favorite')">
+                <el-icon><Star /></el-icon> 我的收藏
+              </el-button>
               <el-button text @click="$router.push('/orders')">
                 <el-icon><Document /></el-icon> 我的订单
               </el-button>
               <el-button text @click="$router.push('/my-products')">
                 <el-icon><Goods /></el-icon> 我的商品
+              </el-button>
+              <el-button text @click="$router.push('/profile')">
+                <el-icon><User /></el-icon> 个人中心
               </el-button>
               <span class="user-name">{{ user?.username }}</span>
               <el-button type="danger" size="small" @click="logout">退出</el-button>
@@ -41,6 +47,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { Star, User } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const router = useRouter()

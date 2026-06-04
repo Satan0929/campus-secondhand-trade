@@ -3,12 +3,17 @@ package com.campus.secondhand.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.campus.secondhand.common.Result;
+import com.campus.secondhand.dto.FavoriteWithProduct;
 import com.campus.secondhand.entity.Favorite;
+import com.campus.secondhand.entity.Product;
 import com.campus.secondhand.mapper.FavoriteMapper;
+import com.campus.secondhand.mapper.ProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/favorite")
@@ -18,14 +23,25 @@ public class FavoriteController {
     @Autowired
     private FavoriteMapper favoriteMapper;
 
+    @Autowired
+    private ProductMapper productMapper;
+
     @GetMapping
-    public Result<List<Favorite>> list() {
+    public Result<List<FavoriteWithProduct>> list() {
         Long userId = StpUtil.getLoginIdAsLong();
         LambdaQueryWrapper<Favorite> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Favorite::getUserId, userId);
         wrapper.orderByDesc(Favorite::getCreateTime);
-        List<Favorite> list = favoriteMapper.selectList(wrapper);
-        return Result.success(list);
+        List<Favorite> favorites = favoriteMapper.selectList(wrapper);
+        
+        List<FavoriteWithProduct> result = new ArrayList<>();
+        for (Favorite favorite : favorites) {
+            Product product = productMapper.selectById(favorite.getProductId());
+            if (product != null) {
+                result.add(new FavoriteWithProduct(favorite, product));
+            }
+        }
+        return Result.success(result);
     }
 
     @PostMapping

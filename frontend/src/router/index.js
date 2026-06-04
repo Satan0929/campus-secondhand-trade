@@ -7,6 +7,8 @@ import Publish from '../views/Publish.vue'
 import Cart from '../views/Cart.vue'
 import Orders from '../views/Orders.vue'
 import MyProducts from '../views/MyProducts.vue'
+import Profile from '../views/Profile.vue'
+import Favorite from '../views/Favorite.vue'
 
 const routes = [
   { path: '/', component: Home },
@@ -16,7 +18,9 @@ const routes = [
   { path: '/publish', component: Publish },
   { path: '/cart', component: Cart },
   { path: '/orders', component: Orders },
-  { path: '/my-products', component: MyProducts }
+  { path: '/my-products', component: MyProducts },
+  { path: '/profile', component: Profile },
+  { path: '/favorite', component: Favorite }
 ]
 
 const router = createRouter({
