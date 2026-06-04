@@ -44,7 +44,7 @@ const handleRegister = async () => {
   try {
     const res = await axios.post('/api/user/register', {
       username: form.value.username,
-      passwordHash: form.value.password,
+      password: form.value.password,
       phone: form.value.phone
     })
     if (res.data.code === 200) {
